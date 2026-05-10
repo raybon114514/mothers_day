@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>母親節快樂</title>
+    <title>母親節快樂 - 三面循環翻轉</title>
     <style>
         /* 基礎重置與背景設定 */
         body {
@@ -14,10 +14,23 @@
             align-items: center;
             background: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%);
             font-family: 'Microsoft JhengHei', 'PingFang TC', sans-serif;
-            overflow: hidden; /* 隱藏超出畫面的漂浮愛心 */
+            overflow: hidden;
+            position: relative;
+            user-select: none;
         }
 
-        /* 卡片容器，設定透視點以呈現 3D 效果 */
+        /* 外部康乃馨背景容器 */
+        .carnation-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        /* 卡片容器 */
         .card-container {
             width: 320px;
             height: 480px;
@@ -37,18 +50,23 @@
             border-radius: 20px;
         }
 
-        /* 觸發翻轉的 class */
-        .card.is-flipped {
-            transform: rotateY(180deg);
-        }
-
         /* 卡片正反面共用樣式 */
-        .card-front, .card-back {
+        .card-face {
             width: 100%;
             height: 100%;
             position: absolute;
-            backface-visibility: hidden; /* 翻轉到背面時隱藏 */
+            backface-visibility: hidden;
             border-radius: 20px;
+            overflow: hidden;
+        }
+
+        .card-front { transform: rotateY(0deg); }
+        .card-back { transform: rotateY(180deg); }
+
+        /* 每一頁的共用排版 */
+        .page-content {
+            width: 100%;
+            height: 100%;
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -56,145 +74,216 @@
             padding: 30px;
             box-sizing: border-box;
             text-align: center;
+            position: relative;
+            border-radius: 20px;
         }
 
-        /* 卡片正面 */
-        .card-front {
-            background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
-            color: white;
+        /* --- 第一面：封面樣式 --- */
+        .theme-cover { background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%); color: white; }
+        .theme-cover h1 { font-size: 2.5rem; margin-bottom: 10px; letter-spacing: 2px; text-shadow: 2px 2px 4px rgba(0,0,0,0.2); }
+        .hint { font-size: 1rem; opacity: 0.8; margin-top: 20px; animation: blink 2s infinite; }
+        .flower { font-size: 5rem; margin: 20px 0; animation: pulse 2s infinite; }
+
+        /* --- 第二面：內文樣式 --- */
+        .theme-text { background-color: #fffafa; color: #d6336c; border: 4px solid #fecfef; }
+        .theme-text h2 { font-size: 1.8rem; margin-bottom: 25px; color: #e64980; position: relative; z-index: 2; }
+        .theme-text p { font-size: 1.15rem; line-height: 1.8; color: #555; text-align: left; width: 100%; position: relative; z-index: 2; }
+        .signature { margin-top: 40px !important; font-weight: bold; font-size: 1.3rem !important; color: #e64980 !important; text-align: right !important; }
+        
+        /* 新增：延遲一秒才顯示的提示文字 */
+        .delayed-hint {
+            font-size: 0.95rem;
+            color: #e64980;
+            margin-top: 25px;
+            opacity: 0; /* 預設完全透明隱藏 */
+            animation: showAndBlink 2s infinite forwards;
+            animation-delay: 1s; /* 延遲 1 秒後才開始動畫 */
+            z-index: 2;
         }
 
-        .card-front h1 {
-            font-size: 2.5rem;
-            margin-bottom: 10px;
-            letter-spacing: 2px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
-        }
-
-        .hint {
-            font-size: 1rem;
-            opacity: 0.8;
-            margin-top: 20px;
-            animation: blink 2s infinite;
-        }
-
-        /* 正面裝飾動畫 */
-        .flower {
-            font-size: 5rem;
-            margin: 20px 0;
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.1); }
-            100% { transform: scale(1); }
-        }
-
-        @keyframes blink {
+        @keyframes showAndBlink {
             0%, 100% { opacity: 0.4; }
             50% { opacity: 1; }
         }
 
-        /* 卡片背面（內頁） */
-        .card-back {
-            background-color: #fffafa;
-            color: #d6336c;
-            transform: rotateY(180deg);
-            border: 4px solid #fecfef;
+        /* --- 第三面：照片樣式 --- */
+        .theme-photo { background-color: #fff0f3; color: #d6336c; border: 4px dashed #ffb6c1; }
+        .theme-photo h2 { font-size: 1.6rem; margin-bottom: 15px; color: #e64980; z-index: 2;}
+        .photo-frame {
+            background-color: white;
+            padding: 12px 12px 30px 12px;
+            box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+            border-radius: 4px;
+            transform: rotate(-3deg);
+            z-index: 2;
+            transition: transform 0.3s;
         }
+        .photo-frame:hover { transform: rotate(0deg) scale(1.05); }
+        .photo-frame img { width: 220px; height: 220px; object-fit: cover; border: 1px solid #eee; }
 
-        .card-back h2 {
-            font-size: 1.8rem;
-            margin-bottom: 25px;
-            color: #e64980;
-        }
+        /* 內頁康乃馨裝飾 */
+        .inner-carnation { position: absolute; font-size: 1.5rem; opacity: 0.5; z-index: 0; }
+        .inner-carnation.center-flower { top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 12rem; opacity: 0.05; }
+        .inner-carnation.top-left { top: 15px; left: 15px; }
+        .inner-carnation.top-right { top: 15px; right: 15px; }
+        .inner-carnation.bottom-left { bottom: 15px; left: 15px; }
+        .inner-carnation.bottom-right { bottom: 15px; right: 15px; }
 
-        .card-back p {
-            font-size: 1.15rem;
-            line-height: 1.8;
-            color: #555;
-            text-align: left;
-            width: 100%;
-        }
+        /* 共用動畫 */
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
+        @keyframes blink { 0%, 100% { opacity: 0.4; } 50% { opacity: 1; } }
 
-        .signature {
-            margin-top: 40px !important;
-            font-weight: bold;
-            font-size: 1.3rem !important;
-            color: #e64980 !important;
-            text-align: right !important;
-        }
+        /* 背景漂浮愛心 */
+        .floating-heart { position: absolute; font-size: 20px; color: #ff758c; animation: floatUp linear infinite; opacity: 0.7; z-index: 2; pointer-events: none; }
+        @keyframes floatUp { 0% { transform: translateY(100vh) scale(0.5) rotate(0deg); opacity: 0; } 20% { opacity: 0.8; } 100% { transform: translateY(-10vh) scale(1.2) rotate(360deg); opacity: 0; } }
 
-        /* 背景漂浮愛心特效 */
-        .floating-heart {
-            position: absolute;
-            font-size: 20px;
-            color: #ff758c;
-            animation: floatUp linear infinite;
-            opacity: 0.7;
-            z-index: 1;
-            pointer-events: none; /* 避免干擾卡片點擊 */
-        }
-
-        @keyframes floatUp {
-            0% { transform: translateY(100vh) scale(0.5) rotate(0deg); opacity: 0; }
-            20% { opacity: 0.8; }
-            100% { transform: translateY(-10vh) scale(1.2) rotate(360deg); opacity: 0; }
-        }
+        /* 外部康乃馨 */
+        .carnation { position: absolute; font-size: 25px; opacity: 0; transform: scale(0); animation: grow-carnation 1s ease-out forwards; }
+        @keyframes grow-carnation { 0% { opacity: 0; transform: scale(0); } 100% { opacity: 1; transform: scale(1); } }
     </style>
 </head>
 <body>
 
-    <!-- 點擊整個容器觸發翻轉 -->
-    <div class="card-container" onclick="flipCard()">
+    <div id="carnation-container" class="carnation-container"></div>
+
+    <div class="card-container" id="cardContainer">
         <div class="card" id="myCard">
-            
-            <!-- 卡片封面 -->
-            <div class="card-front">
+            <div class="card-face card-front" id="cardFront"></div>
+            <div class="card-face card-back" id="cardBack"></div>
+        </div>
+    </div>
+
+    <!-- 內容模板存放區 -->
+    <div style="display: none;">
+        
+        <!-- 【第一面：封面】 -->
+        <div id="template-page-0">
+            <div class="page-content theme-cover">
                 <h1>母親節快樂</h1>
                 <div class="flower">🌸</div>
                 <div class="hint">（點擊翻開卡片）</div>
             </div>
+        </div>
 
-            <!-- 卡片內頁 -->
-            <div class="card-back">
+        <!-- 【第二面：給媽媽的話】 -->
+        <div id="template-page-1">
+            <div class="page-content theme-text">
+                <div class="inner-carnation top-left">💐</div>
+                <div class="inner-carnation top-right">💐</div>
+                <div class="inner-carnation bottom-left">💐</div>
+                <div class="inner-carnation bottom-right">💐</div>
+                <div class="inner-carnation center-flower">💐</div>
+
                 <h2>親愛的芝蘋媽媽：</h2>
-                <p>謝謝您一直以來的照顧與包容，為了我們無私地付出。</p>
+                <p>謝謝您一直以來的照顧與包容，為了這個家無私地付出。</p>
                 <p>在這個特別的日子裡，祝您永遠健康美麗，天天開心！</p>
                 <p class="signature">- 睿謙</p>
+                
+                <!-- 加入了這行延遲顯示的提示 -->
+                <div class="delayed-hint">（點擊繼續翻閱）</div>
             </div>
-
         </div>
+
+        <!-- 【第三面：照片回憶】 -->
+        <div id="template-page-2">
+            <div class="page-content theme-photo">
+                <div class="inner-carnation center-flower">💖</div>
+                
+                <h2>毛咪</h2>
+                <div class="photo-frame">
+                    <img src="/cat.jpg" alt="照片">
+                </div>
+                <!-- 這裡也順便把文字改成了統一的 delayed-hint，讓它也有一秒的延遲與閃爍效果 -->
+                <div class="delayed-hint">（點擊回封面）</div>
+            </div>
+        </div>
+
     </div>
 
     <script>
-        // 控制卡片翻轉的函式
-        function flipCard() {
-            document.getElementById('myCard').classList.toggle('is-flipped');
-        }
+        const templates = [
+            document.getElementById('template-page-0').innerHTML,
+            document.getElementById('template-page-1').innerHTML,
+            document.getElementById('template-page-2').innerHTML
+        ];
+        
+        const card = document.getElementById('myCard');
+        const cardFront = document.getElementById('cardFront');
+        const cardBack = document.getElementById('cardBack');
+        const carnationContainer = document.getElementById('carnation-container');
 
-        // 動態生成背景漂浮愛心的函式
+        let currentPageIndex = 0;
+        let currentRotation = 0;
+        let isFrontFacing = true;
+
+        let heartInterval;
+        let carnationInterval;
+        let carnationCount = 0;
+        const maxCarnations = 30;
+
+        cardFront.innerHTML = templates[0];
+        cardBack.innerHTML = templates[1]; 
+
+        cardContainer.addEventListener('click', () => {
+            currentPageIndex = (currentPageIndex + 1) % templates.length;
+            currentRotation -= 180; 
+            
+            if (isFrontFacing) {
+                cardBack.innerHTML = templates[currentPageIndex];
+            } else {
+                cardFront.innerHTML = templates[currentPageIndex];
+            }
+
+            card.style.transform = `rotateY(${currentRotation}deg)`;
+            isFrontFacing = !isFrontFacing;
+
+            if (currentPageIndex === 0) {
+                clearInterval(carnationInterval);
+                clearCarnations();
+                heartInterval = setInterval(createHearts, 400);
+            } else if (currentPageIndex === 1) {
+                clearInterval(heartInterval);
+                startCarnationGrowth();
+            }
+        });
+
         function createHearts() {
             const heart = document.createElement('div');
             heart.classList.add('floating-heart');
             heart.innerHTML = '❤️';
-            
-            // 隨機設定愛心的起始位置與動畫長度
             heart.style.left = Math.random() * 100 + 'vw';
-            heart.style.animationDuration = Math.random() * 3 + 3 + 's'; // 3秒 ~ 6秒
-            heart.style.fontSize = Math.random() * 15 + 15 + 'px'; // 15px ~ 30px
-            
+            heart.style.animationDuration = Math.random() * 3 + 3 + 's'; 
+            heart.style.fontSize = Math.random() * 15 + 15 + 'px'; 
             document.body.appendChild(heart);
-
-            // 當動畫結束後移除 DOM 元素，避免佔用記憶體
-            setTimeout(() => {
-                heart.remove();
-            }, 6000);
+            setTimeout(() => heart.remove(), 6000);
         }
 
-        // 每 400 毫秒生成一顆新愛心
-        setInterval(createHearts, 400);
+        function startCarnationGrowth() {
+            carnationCount = 0;
+            clearCarnations();
+            carnationInterval = setInterval(createCarnation, 200); 
+        }
+
+        function createCarnation() {
+            if (carnationCount >= maxCarnations) {
+                clearInterval(carnationInterval);
+                return;
+            }
+            const carnation = document.createElement('div');
+            carnation.classList.add('carnation');
+            carnation.innerHTML = '💐'; 
+            carnation.style.top = Math.random() * 90 + 5 + 'vh'; 
+            carnation.style.left = Math.random() * 90 + 5 + 'vw'; 
+            carnation.style.fontSize = Math.random() * 10 + 20 + 'px'; 
+            carnationContainer.appendChild(carnation);
+            carnationCount++;
+        }
+
+        function clearCarnations() {
+            carnationContainer.innerHTML = '';
+        }
+
+        heartInterval = setInterval(createHearts, 400);
     </script>
 </body>
 </html>
